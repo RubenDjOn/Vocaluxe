@@ -104,7 +104,7 @@ namespace Vocaluxe.Base
             [DefaultValue(EPlayerInfo.TR_CONFIG_PLAYERINFO_BOTH)] public EPlayerInfo PlayerInfo;
             [DefaultValue(EFadePlayerInfo.TR_CONFIG_FADEPLAYERINFO_OFF)] public EFadePlayerInfo FadePlayerInfo;
             [DefaultValue(ECoverLoading.TR_CONFIG_COVERLOADING_DYNAMIC)] public ECoverLoading CoverLoading;
-            [DefaultValue(ELyricStyle.Slide)] public ELyricStyle LyricStyle;
+            [DefaultValue(ELyricStyle.TR_CONFIG_LYRICSTYLE_SLIDE)] public ELyricStyle LyricStyle;
         }
 
         public struct SConfigSound
@@ -523,28 +523,24 @@ namespace Vocaluxe.Base
         /// <summary>
         ///     Checks, if there is a mic-configuration
         /// </summary>
-        /// <returns></returns>
-        public static bool IsMicConfig()
-        {
-            ReadOnlyCollection<CRecordDevice> devices = CRecord.GetDevices();
-            if (devices == null)
-                return false;
-
-            return devices.Any(t => t.PlayerChannel1 != 0 || t.PlayerChannel2 != 0);
-        }
-
-        /// <summary>
-        ///     Checks, if there is a mic-configuration
-        /// </summary>
         /// <param name="player">Player-Number</param>
         /// <returns></returns>
-        public static bool IsMicConfig(int player)
+        public static bool IsMicConfig(int player = 0)
         {
             ReadOnlyCollection<CRecordDevice> devices = CRecord.GetDevices();
             if (devices == null)
                 return false;
 
-            return devices.Any(t => t.PlayerChannel1 == player || t.PlayerChannel2 == player);
+            if (player > 0)
+                return devices.Any(t => t.PlayerChannel.Contains(player));
+
+            for (int p = 0; p < CSettings.MaxNumPlayer; ++p)
+                if (devices.Any(t => t.PlayerChannel.Contains(p+1)))
+                {
+                    return true;
+                }
+
+            return false;
         }
 
         public static int GetMaxNumMics()
